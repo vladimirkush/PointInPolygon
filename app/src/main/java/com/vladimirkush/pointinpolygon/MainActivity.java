@@ -59,8 +59,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Connec
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
-
     }
 
 
@@ -68,10 +66,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Connec
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-
         showLastKnownLocationOnMap();
-
-
     }
 
     @Override
@@ -96,21 +91,16 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Connec
             startLocationUpdates();
 
         }
-
     }
 
     private void showLastKnownLocationOnMap(){
         if (mLastLocation != null) {
-            //mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
-            //mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
             Toast.makeText(this, "Lat:" + mLastLocation.getLatitude() + " Lon:" + mLastLocation.getLongitude(), Toast.LENGTH_LONG).show();
             if (mMap != null) {
                 if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                         ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
                     mMap.setMyLocationEnabled(true);
-                   // mMap.getUiSettings().setMyLocationButtonEnabled(false);
-
 
                 }
                 LatLng lastLatLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
@@ -160,7 +150,16 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Connec
         });
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
+    }
 
+    protected void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                mGoogleApiClient, this);
+    }
 
     @Override
     public void onConnectionSuspended(int i) {
