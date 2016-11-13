@@ -31,12 +31,16 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.kml.KmlContainer;
+import com.google.maps.android.kml.KmlGeometry;
 import com.google.maps.android.kml.KmlLayer;
 import com.google.maps.android.kml.KmlPlacemark;
-
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class MainActivity extends Activity
         implements OnMapReadyCallback, ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
@@ -49,6 +53,7 @@ public class MainActivity extends Activity
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
     private LocationRequest mLocationRequest;
+    private ArrayList<LatLng> mPolygonCoords;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,13 +87,19 @@ public class MainActivity extends Activity
         try {
             KmlLayer kmlLayer = new KmlLayer(mMap, R.raw.allowed_area, this);
             kmlLayer.addLayerToMap();
+            mPolygonCoords = getCoordinatesFromKmlLayer(kmlLayer);
+            Log.d(TAG, mPolygonCoords.toString());
+
+
             Log.d(TAG, "KMLlayer added successfully");
         } catch (XmlPullParserException e) {
-            Log.d(TAG, "XmlPullParserException: "+e.getStackTrace());
+            Log.d(TAG, "XmlPullParserException: "+e.getMessage());
         } catch (IOException e) {
-            Log.d(TAG, "IOException: "+e.getStackTrace());
+            Log.d(TAG, "IOException: "+e.getMessage());
         }
     }
+
+
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -156,7 +167,7 @@ public class MainActivity extends Activity
                     alertNoLocationPermissions();
 
                 }
-                return;
+
             }
 
         }
@@ -258,6 +269,24 @@ public class MainActivity extends Activity
         });
         dlgAlert.setCancelable(true);
         dlgAlert.create().show();
+    }
+
+
+    private ArrayList<LatLng> getCoordinatesFromKmlLayer(KmlLayer layer){
+
+        List<LatLng> points = new ArrayList<>();
+        for (KmlContainer c : layer.getContainers()) {
+            for (KmlPlacemark p : c.getPlacemarks()) {
+                KmlGeometry g = p.getGeometry();
+                if (g.getGeometryType().equals("Polygon")) {
+                    points.addAll((Collection<? extends LatLng>) g.getGeometryObject());
+                }
+            }
+        }
+        Log.d(TAG, points.toString());
+
+        Object[] o = points.toArray();
+        return (ArrayList<LatLng>) o[0];
     }
 
 
