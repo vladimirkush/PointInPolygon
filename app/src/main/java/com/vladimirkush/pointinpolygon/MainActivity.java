@@ -48,6 +48,14 @@ import BL.Checker;
 import BL.CheckerTask;
 import BL.Constants;
 
+/**
+ * This project is an assignment by P.D.A.C. TECH, and performed by Vladimir Kushnirsky.
+ * Application checks if the device's location is inside the polygon defined by a kml file.
+ * The file is placed in the res/raw folder and is used as a resource.
+ * In the strings.xml there is one of my personal API key for Google Play Services.
+ * Tested on Android 6.0 Marshmallow virtual devices and my OnePlus One.
+ */
+
 public class MainActivity extends Activity
         implements OnMapReadyCallback, ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
     //consts
@@ -285,9 +293,9 @@ public class MainActivity extends Activity
     /* if permission denied, alert user and exit */
     private void alertNoLocationPermissions() {
         AlertDialog.Builder dlgAlert = new AlertDialog.Builder(this);
-        dlgAlert.setMessage("This app needs access to your location");
-        dlgAlert.setTitle("No location");
-        dlgAlert.setPositiveButton("Close app", new DialogInterface.OnClickListener() {
+        dlgAlert.setMessage(getResources().getString(R.string.locatioNnotGrantedMsg));
+        dlgAlert.setTitle(getResources().getString(R.string.locatioNnotGrantedTitle));
+        dlgAlert.setPositiveButton(getResources().getString(R.string.locatioNnotGrantedButtonText), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 finish();
             }

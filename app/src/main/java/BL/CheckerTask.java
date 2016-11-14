@@ -54,9 +54,6 @@ public class CheckerTask extends AsyncTask<Checker, Void, Boolean> {
                 imageView.setImageResource(R.mipmap.btn_red);
                 text.setText("Distance:\n "+ String.format("%.3f", results[0]) + "m");
 
-
-
-
             }
         }
     }
