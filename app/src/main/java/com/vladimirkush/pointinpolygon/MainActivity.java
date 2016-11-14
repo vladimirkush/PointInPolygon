@@ -3,6 +3,7 @@ package com.vladimirkush.pointinpolygon;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,6 +11,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -59,9 +61,11 @@ public class MainActivity extends Activity
     private LocationRequest mLocationRequest;
     private ArrayList<LatLng> mPolygonCoords;
     private Checker mChecker;
+    private boolean mIsLocationUpdateStarted = false;
 
-
-    private TextView mTvIsInside;
+     //views
+    private TextView mTvDist;
+    private ImageView mStatusIsInsideIv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +88,11 @@ public class MainActivity extends Activity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        mTvIsInside = (TextView) findViewById(R.id.isInsideTextView);
+        // setup views
+        mTvDist = (TextView) findViewById(R.id.distanceTextView);
+        mStatusIsInsideIv = (ImageView) findViewById(R.id.insideStatusImageView);
+
+        mStatusIsInsideIv.setImageResource(R.mipmap.btn_red);
     }
 
     @Override
@@ -125,7 +133,10 @@ public class MainActivity extends Activity
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                     mGoogleApiClient);
             showLastKnownLocationOnMap();
-            startLocationUpdates();
+            if(!mIsLocationUpdateStarted) {
+                startLocationUpdates();
+                mIsLocationUpdateStarted = true;
+            }
 
         }
     }
@@ -170,12 +181,14 @@ public class MainActivity extends Activity
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startLocationUpdates();////////////////////////////////////////////-----------------
 
+                    if(!mIsLocationUpdateStarted) {
+                        startLocationUpdates();
+                        mIsLocationUpdateStarted = true;
+                    }
                     showLastKnownLocationOnMap();
 
                 } else {
-
                     alertNoLocationPermissions();
 
                 }
@@ -190,43 +203,41 @@ public class MainActivity extends Activity
         mLastLocation = location;
         showLastKnownLocationOnMap();
         Log.d(TAG, "Lat: " + mLastLocation.getLatitude() + ", Lon: " + mLastLocation.getLongitude());
+
+        // run the algorithm asynchronously
         if(mChecker != null && mMap != null){
             LatLng pos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
-            new CheckerTask(mTvIsInside,pos).execute(mChecker);
+            new CheckerTask(mTvDist, mStatusIsInsideIv,pos).execute(mChecker);
         }
     }
 
+    /* method for updating a map with new location */
     private void showLastKnownLocationOnMap() {
-        if (mLastLocation != null) {
-            //Toast.makeText(this, "Lat:" + mLastLocation.getLatitude() + " Lon:" + mLastLocation.getLongitude(), Toast.LENGTH_LONG).show();
-            if (mMap != null) {
-                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (mLastLocation != null && mMap != null) {
+            // check if permissions granted
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
-                    // show device on the map - blue dot
-                    mMap.setMyLocationEnabled(true);
+                // show device on the map - blue dot
+                mMap.setMyLocationEnabled(true);
 
-                }
-                // center camera on device's location
-                LatLng lastLatLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-                CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(lastLatLng, ZOOM_RATE);
-                mMap.moveCamera(upd);
             }
+
+            // center camera on device's location
+            LatLng lastLatLng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+            CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(lastLatLng, ZOOM_RATE);
+            mMap.moveCamera(upd);
+
         }
     }
 
-    /*
-    private boolean areLocationPermissionsGranted() {
-        return (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED);
-    }
-    */
+
 
     /* setup location updates' properties */
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(1000);
-        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setInterval(1000);             // update every 1 sec
+        mLocationRequest.setFastestInterval(1000);      // set max upd time of 1 sec
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
@@ -237,21 +248,20 @@ public class MainActivity extends Activity
                         builder.build());
 
         result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+
+            // response to user decision
             @Override
             public void onResult(LocationSettingsResult result) {
                 final Status status = result.getStatus();
-                //final LocationSettingsStates states = result.getLocationSettingsStates();
                 switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         Log.d(TAG, "SETTINGS SUCCESS");
-
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         Log.d(TAG, "SETTINGS RESOLUTION REQUIRED");
                         break;
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                         Log.d(TAG, "SETTINGS UNAVAILABLE");
-
                         break;
                 }
             }
@@ -262,11 +272,14 @@ public class MainActivity extends Activity
     protected void stopLocationUpdates() {
         LocationServices.FusedLocationApi.removeLocationUpdates(
                 mGoogleApiClient, this);
+        mIsLocationUpdateStarted = false;
     }
 
-
+    /* request system for periodic location updates */
     protected void startLocationUpdates() {
         Log.d(TAG, "Location updates started");
+
+        // check if permissions granted
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
@@ -274,6 +287,7 @@ public class MainActivity extends Activity
         }
     }
 
+    /* if permission denied, alert user and exit */
     private void alertNoLocationPermissions() {
         AlertDialog.Builder dlgAlert = new AlertDialog.Builder(this);
         dlgAlert.setMessage("This app needs access to your location");
@@ -287,7 +301,8 @@ public class MainActivity extends Activity
         dlgAlert.create().show();
     }
 
-
+    @SuppressWarnings("unchecked")
+    /* workaround for quick extraction of coordinates without building full parser (works but not so elegant) */
     private ArrayList<LatLng> getCoordinatesFromKmlLayer(KmlLayer layer){
 
         List<LatLng> points = new ArrayList<>();
@@ -305,13 +320,4 @@ public class MainActivity extends Activity
         return (ArrayList<LatLng>) o[0];
     }
 
-
-    /*public void onTestBtnClick(View view) {
-        if (mChecker == null)
-            mChecker = new Checker(mPolygonCoords);
-        else{
-            LatLng pos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
-            mChecker.isInside(pos);
-        }
-    }*/
 }

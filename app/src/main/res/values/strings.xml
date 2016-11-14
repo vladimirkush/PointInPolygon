@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">PointInPolygon</string>
+    <string name="insideTextLabel">Is inside?</string>
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyCHDz4zO9JeG6JIiNhY9d3IQYiKHYpduDk</string>
 </resources>
