@@ -60,6 +60,7 @@ public class MainActivity extends Activity
     private ArrayList<LatLng> mPolygonCoords;
     private Checker mChecker;
 
+
     private TextView mTvIsInside;
 
     @Override
@@ -188,7 +189,7 @@ public class MainActivity extends Activity
         mLastLocation = location;
         showLastKnownLocationOnMap();
         Log.d(TAG, "Lat: " + mLastLocation.getLatitude() + ", Lon: " + mLastLocation.getLongitude());
-        if(mChecker != null){
+        if(mChecker != null && mMap != null){
             LatLng pos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
             new CheckerTask(mTvIsInside,pos).execute(mChecker);
         }
