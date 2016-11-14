@@ -10,6 +10,9 @@ import com.vladimirkush.pointinpolygon.R;
 
 import java.lang.ref.WeakReference;
 
+/**
+ * Asynchronous run of algorithms, and updating UI accordingly
+ */
 
 public class CheckerTask extends AsyncTask<Checker, Void, Boolean> {
 
@@ -30,11 +33,9 @@ public class CheckerTask extends AsyncTask<Checker, Void, Boolean> {
     @Override
     protected Boolean doInBackground(Checker... checkers) {
         Checker checker = checkers[0];
-        Boolean inside = checker.isInside(location);
-        if(inside){
-
-        }else{
-            nearestPoint =  checker.findNearestPoint(location);
+        Boolean inside = checker.isInside(location);                // check if location is inside a polygon
+        if(!inside) {
+            nearestPoint = checker.findNearestPoint(location);      // if outside - compute nearest point
         }
         return inside;
     }
@@ -49,7 +50,7 @@ public class CheckerTask extends AsyncTask<Checker, Void, Boolean> {
                 text.setText("");
             }else{
                 float[] results = new float[3];
-                Location.distanceBetween(location.latitude, location.longitude, nearestPoint.latitude, nearestPoint.longitude, results);
+                Location.distanceBetween(location.latitude, location.longitude, nearestPoint.latitude, nearestPoint.longitude, results); // calculate distance to nearest point
                 imageView.setImageResource(R.mipmap.btn_red);
                 text.setText("Distance:\n "+ String.format("%.3f", results[0]) + "m");
 

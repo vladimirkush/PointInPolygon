@@ -3,7 +3,6 @@ package com.vladimirkush.pointinpolygon;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -47,25 +46,26 @@ import java.util.List;
 
 import BL.Checker;
 import BL.CheckerTask;
+import BL.Constants;
 
 public class MainActivity extends Activity
         implements OnMapReadyCallback, ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
     //consts
-    public static final String TAG = "MAIN_ACT";
-    public static final float ZOOM_RATE = 14;
+    public static final String  TAG = "MAIN_ACT";
+    public static final float   ZOOM_RATE = 14;
 
     //fields
-    private GoogleMap mMap;
-    private GoogleApiClient mGoogleApiClient;
-    private Location mLastLocation;
-    private LocationRequest mLocationRequest;
-    private ArrayList<LatLng> mPolygonCoords;
-    private Checker mChecker;
-    private boolean mIsLocationUpdateStarted = false;
+    private GoogleMap           mMap;
+    private GoogleApiClient     mGoogleApiClient;
+    private Location            mLastLocation;
+    private LocationRequest     mLocationRequest;
+    private ArrayList<LatLng>   mPolygonCoords;
+    private Checker             mChecker;
+    private boolean             mIsLocationUpdateStarted = false;
 
      //views
-    private TextView mTvDist;
-    private ImageView mStatusIsInsideIv;
+    private TextView            mTvDist;
+    private ImageView           mStatusIsInsideIv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,8 +91,6 @@ public class MainActivity extends Activity
         // setup views
         mTvDist = (TextView) findViewById(R.id.distanceTextView);
         mStatusIsInsideIv = (ImageView) findViewById(R.id.insideStatusImageView);
-
-        mStatusIsInsideIv.setImageResource(R.mipmap.btn_red);
     }
 
     @Override
@@ -102,7 +100,7 @@ public class MainActivity extends Activity
         showLastKnownLocationOnMap();
 
         try {
-            KmlLayer kmlLayer = new KmlLayer(mMap, R.raw.allowed_area, this);
+            KmlLayer kmlLayer = new KmlLayer(mMap, R.raw.allowed_area, this);   // load test file
             kmlLayer.addLayerToMap();
             mPolygonCoords = getCoordinatesFromKmlLayer(kmlLayer);
             mChecker = new Checker(mPolygonCoords);
@@ -114,7 +112,6 @@ public class MainActivity extends Activity
         } catch (IOException e) {
             Log.d(TAG, "IOException: "+e.getMessage());
         }
-        //mChecker = new Checker(null,mPolygonCoords);
 
     }
 
@@ -149,11 +146,13 @@ public class MainActivity extends Activity
 
     @Override
     public void onConnectionSuspended(int i) {
+        Log.d(TAG, "onConnectionSuspended");
 
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(TAG, "onConnectionFailed");
 
     }
 
@@ -161,16 +160,12 @@ public class MainActivity extends Activity
     protected void onStart() {
         mGoogleApiClient.connect();
         super.onStart();
-
-
     }
 
     @Override
     protected void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
-
-
     }
 
     @Override

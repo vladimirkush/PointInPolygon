@@ -1,6 +1,5 @@
 package BL;
 
-
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -10,17 +9,17 @@ import java.util.ArrayList;
 
 public class Checker {
     private static final String TAG = "MAIN_ACT";
-    private double xMin;
-    private double xMax;
-    private double yMin;
-    private double yMax;
-    private ArrayList<LatLng> polygonCoords;
+    private double              xMin;
+    private double              xMax;
+    private double              yMin;
+    private double              yMax;
+    private ArrayList<LatLng>   polygonCoords;
 
     public Checker(ArrayList<LatLng> polygonCoords) {
-
         this.polygonCoords = polygonCoords;
         findBoundaries();
     }
+
     /* find boundaries for fast checking if the location is outside */
     private void findBoundaries(){
         xMin = 180;    //lon min -180
@@ -49,7 +48,7 @@ public class Checker {
         int i, j;
         boolean inside = false;
         for (i = 0, j = polygonCoords.size() - 1; i < polygonCoords.size(); j = i++) {
-            if (((polygonCoords.get(i).longitude > location.longitude) != (polygonCoords.get(j).longitude > location.longitude)) &&
+            if (((polygonCoords.get(i).longitude > location.longitude) != (polygonCoords.get(j).longitude > location.longitude)) &&     //this row checks if a point in boundaries of a line
                     (location.latitude < (polygonCoords.get(j).latitude - polygonCoords.get(i).latitude) * (location.longitude - polygonCoords.get(i).longitude) / (polygonCoords.get(j).longitude - polygonCoords.get(i).longitude) + polygonCoords.get(i).latitude))
                 inside = !inside;
         }
@@ -57,7 +56,7 @@ public class Checker {
         return inside;
     }
 
-    /* fast check if the location is outside to improve performance */
+    /* fast check if the location is outside the boundaries of a polygon to improve performance */
     private boolean isOutsideOfBoundaries(LatLng loc){
         if (loc.longitude < xMin || loc.longitude > xMax || loc.latitude < yMin || loc.latitude > yMax )
             return true;
@@ -66,6 +65,7 @@ public class Checker {
 
 
     /*
+       Algorithm to find the nearest point of a polygon's side from a test LatLng position
        Taken from here: http://stackoverflow.com/questions/36104809/find-the-closest-point-on-polygon-to-user-location
     */
     public LatLng findNearestPoint(LatLng test) {
