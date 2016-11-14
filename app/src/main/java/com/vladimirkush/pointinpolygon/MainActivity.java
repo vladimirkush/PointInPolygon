@@ -10,7 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -35,12 +35,16 @@ import com.google.maps.android.kml.KmlContainer;
 import com.google.maps.android.kml.KmlGeometry;
 import com.google.maps.android.kml.KmlLayer;
 import com.google.maps.android.kml.KmlPlacemark;
+
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import BL.Checker;
+import BL.CheckerTask;
 
 public class MainActivity extends Activity
         implements OnMapReadyCallback, ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
@@ -54,6 +58,9 @@ public class MainActivity extends Activity
     private Location mLastLocation;
     private LocationRequest mLocationRequest;
     private ArrayList<LatLng> mPolygonCoords;
+    private Checker mChecker;
+
+    private TextView mTvIsInside;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +83,7 @@ public class MainActivity extends Activity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        mTvIsInside = (TextView) findViewById(R.id.isInsideTextView);
     }
 
     @Override
@@ -88,8 +96,8 @@ public class MainActivity extends Activity
             KmlLayer kmlLayer = new KmlLayer(mMap, R.raw.allowed_area, this);
             kmlLayer.addLayerToMap();
             mPolygonCoords = getCoordinatesFromKmlLayer(kmlLayer);
+            mChecker = new Checker(mPolygonCoords);
             Log.d(TAG, mPolygonCoords.toString());
-
 
             Log.d(TAG, "KMLlayer added successfully");
         } catch (XmlPullParserException e) {
@@ -97,6 +105,8 @@ public class MainActivity extends Activity
         } catch (IOException e) {
             Log.d(TAG, "IOException: "+e.getMessage());
         }
+        //mChecker = new Checker(null,mPolygonCoords);
+
     }
 
 
@@ -178,6 +188,10 @@ public class MainActivity extends Activity
         mLastLocation = location;
         showLastKnownLocationOnMap();
         Log.d(TAG, "Lat: " + mLastLocation.getLatitude() + ", Lon: " + mLastLocation.getLongitude());
+        if(mChecker != null){
+            LatLng pos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
+            new CheckerTask(mTvIsInside,pos).execute(mChecker);
+        }
     }
 
     private void showLastKnownLocationOnMap() {
@@ -290,4 +304,12 @@ public class MainActivity extends Activity
     }
 
 
+    /*public void onTestBtnClick(View view) {
+        if (mChecker == null)
+            mChecker = new Checker(mPolygonCoords);
+        else{
+            LatLng pos = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
+            mChecker.isInside(pos);
+        }
+    }*/
 }

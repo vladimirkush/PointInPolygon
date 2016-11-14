@@ -22,7 +22,22 @@
         android:layout_weight="1">
 
 
+        <!--Button
+            android:text="Algo"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/button2"
+            android:layout_weight="1"
+            android:onClick="onTestBtnClick"
+            android:elevation="0dp" /-->
 
+
+        <TextView
+            android:text="TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/isInsideTextView"
+            android:layout_weight="1" />
     </LinearLayout>
 
 </LinearLayout>
